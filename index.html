@@ -178,13 +178,24 @@
     opacity: 0;
     transition: opacity 2.4s ease-in-out;
     transform: scale(1.02);
-    animation: drift 26s ease-in-out infinite alternate;
   }
   .photo-layer.active { opacity: 1; }
-  @keyframes drift {
-    0%   { transform: scale(1.02) translate(0, 0); }
-    100% { transform: scale(1.09) translate(-1.5%, -1%); }
+  /* Three Ken Burns variants — slow zoom + slight pan, cycled per photo */
+  @keyframes kb-1 {
+    from { transform: scale(1.02) translate3d(0%, 0%, 0); }
+    to   { transform: scale(1.12) translate3d(-1.5%, -1.2%, 0); }
   }
+  @keyframes kb-2 {
+    from { transform: scale(1.04) translate3d(0.6%, -0.4%, 0); }
+    to   { transform: scale(1.13) translate3d(-1.2%, 1.0%, 0); }
+  }
+  @keyframes kb-3 {
+    from { transform: scale(1.05) translate3d(-0.8%, 0.8%, 0); }
+    to   { transform: scale(1.10) translate3d(1.4%, -0.8%, 0); }
+  }
+  .photo-layer.active.kb-1 { animation: kb-1 32s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+  .photo-layer.active.kb-2 { animation: kb-2 32s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+  .photo-layer.active.kb-3 { animation: kb-3 32s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
 
   .vignette {
     position: absolute;
@@ -202,27 +213,66 @@
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    padding: 2rem;
+    overflow: hidden;
   }
 
-  /* Soft dark scrim behind the lyrics so the line stays readable on bright photos */
+  /* Soft dark scrim behind the lyrics so text is readable on any photo */
   .lyrics-scrim {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     width: min(1100px, 96vw);
-    height: 50vh;
-    height: 50dvh;
+    height: 58vh;
+    height: 58dvh;
     background: radial-gradient(
       ellipse 65% 55% at center,
-      rgba(10, 13, 24, 0.82) 0%,
-      rgba(10, 13, 24, 0.55) 50%,
+      rgba(10, 13, 24, 0.78) 0%,
+      rgba(10, 13, 24, 0.50) 50%,
       rgba(10, 13, 24, 0) 85%
     );
     pointer-events: none;
     z-index: 6;
-    transition: opacity 0.8s ease;
+  }
+
+  /* Window through which we see ~3 lyric rows; mask gently fades top/bottom */
+  .lyrics-window {
+    position: relative;
+    width: min(1000px, 92vw);
+    height: 18rem;
+    z-index: 7;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg,
+      transparent 0%, black 28%, black 72%, transparent 100%);
+            mask-image: linear-gradient(180deg,
+      transparent 0%, black 28%, black 72%, transparent 100%);
+  }
+
+  /* The rail holds ALL 38 lines stacked. We translate it so the current
+     line sits in the window's vertical center. Old lines glide off the top,
+     new lines rise from the bottom, the middle stays calm. */
+  .lyrics-rail {
+    position: absolute;
+    left: 0; right: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    will-change: transform, opacity;
+    opacity: 0;
+    transition:
+      transform 1.05s cubic-bezier(0.55, 0.05, 0.25, 1),
+      opacity 1.1s ease;
+  }
+  .lyrics-rail.show { opacity: 1; }
+
+  .lyric-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.6rem;
+    align-items: center;
+    height: 4rem;
+    margin-bottom: 1.6rem;
+    padding: 0 1.2rem;
   }
 
   /* Romantic caption for each photo — top of screen, soft and italic */
@@ -328,46 +378,27 @@
     letter-spacing: 0.04em;
   }
 
-  /* Three lyric rows visible at once: previous, current, next */
-  .lines {
-    width: min(1000px, 92vw);
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-    z-index: 7;
-    position: relative;
-  }
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2.5rem;
-    align-items: center;
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  .row.prev,
-  .row.current,
-  .row.next    { opacity: 0.92; transform: scale(1); }
-  .row.empty   { opacity: 0; }
-
+  /* Lyric typography — restrained, refined, candlelight */
   .en, .is {
     font-style: italic;
     font-weight: 400;
     color: var(--cream);
-    line-height: 1.5;
+    line-height: 1.45;
     text-shadow:
       0 0 2px rgba(0, 0, 0, 0.95),
-      0 2px 12px rgba(0, 0, 0, 0.9),
-      0 0 40px rgba(0, 0, 0, 0.7);
+      0 2px 14px rgba(0, 0, 0, 0.9),
+      0 0 40px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.005em;
   }
   .en {
-    font-size: clamp(1.2rem, 2.8vw, 1.75rem);
+    font-size: clamp(1.2rem, 2.7vw, 1.7rem);
     text-align: right;
   }
-  .en em { color: var(--gold); }
+  .en em { color: var(--gold); font-style: italic; }
   .is {
-    font-size: clamp(1.05rem, 2.5vw, 1.55rem);
+    font-size: clamp(1.05rem, 2.45vw, 1.55rem);
     text-align: left;
-    color: rgba(245, 230, 200, 0.92);
+    color: rgba(245, 230, 200, 0.94);
   }
 
   .controls {
@@ -504,12 +535,14 @@
 
   @media (max-width: 480px) {
     .ornament { letter-spacing: 0.5em; }
-    .lines { gap: 0.9rem; }
-    .row { gap: 1rem; }
+    .lyrics-window { height: 16rem; }
+    .lyric-row { gap: 1rem; height: 3.5rem; margin-bottom: 1.2rem; padding: 0 0.6rem; }
     .en { font-size: clamp(1rem, 4vw, 1.3rem); }
     .is { font-size: clamp(0.9rem, 3.6vw, 1.15rem); }
-    .lyrics-scrim { height: 50vh; height: 50dvh; }
+    .lyrics-scrim { height: 56vh; height: 56dvh; }
     .caption { font-size: clamp(1.3rem, 5.5vw, 1.8rem); }
+    .intro-card .song-title { font-size: clamp(3rem, 14vw, 5rem); }
+    .intro-card .song-en { font-size: clamp(1.15rem, 5vw, 1.5rem); }
   }
 </style>
 </head>
@@ -543,10 +576,8 @@
 
   <div class="lyrics-frame">
     <div class="lyrics-scrim"></div>
-    <div class="lines" id="lines">
-      <div class="row prev"    data-slot="prev">    <div class="en"></div><div class="is" lang="is"></div></div>
-      <div class="row current" data-slot="current"> <div class="en"></div><div class="is" lang="is"></div></div>
-      <div class="row next"    data-slot="next">    <div class="en"></div><div class="is" lang="is"></div></div>
+    <div class="lyrics-window">
+      <div class="lyrics-rail" id="lyrics-rail"></div>
     </div>
   </div>
 
@@ -578,7 +609,7 @@
   const setup       = $("setup");
   const experience  = $("experience");
   const audio       = $("audio");
-  const linesEl     = $("lines");
+  const rail        = $("lyrics-rail");
   const caption     = $("caption");
   const sectionTag  = $("section-tag");
   const introCard   = $("intro-card");
@@ -593,24 +624,53 @@
   const endCard     = $("end-card");
   const replayBtn   = $("replay-btn");
 
-  // Slot elements
-  const slots = {
-    prev:    linesEl.querySelector('[data-slot="prev"]'),
-    current: linesEl.querySelector('[data-slot="current"]'),
-    next:    linesEl.querySelector('[data-slot="next"]'),
-  };
-  function setSlot(slotName, lineObj) {
-    const el = slots[slotName];
-    const en = el.querySelector(".en");
-    const is = el.querySelector(".is");
-    if (!lineObj) {
-      en.innerHTML = "";
-      is.innerHTML = "";
-      el.classList.add("empty");
+  // Build all 38 lyric rows into the rail once.
+  // From CSS: row height = 4rem, margin-bottom = 1.6rem  →  stride = 5.6rem.
+  // Window height = 18rem, so window center is at 9rem.
+  // To place row N's vertical center at the window center, we translate
+  // the rail by (window_center - row_half - N * stride) = (9 - 2 - 5.6N).
+  const ROW_STRIDE = 5.6;
+  const RAIL_BASE  = 7;   // 9rem (window center) − 2rem (row half-height)
+
+  function buildRail() {
+    rail.innerHTML = "";
+    BASE_LYRICS.forEach((line) => {
+      const row = document.createElement("div");
+      row.className = "lyric-row";
+      const en = document.createElement("div");
+      en.className = "en";
+      en.innerHTML = line.en;
+      const is = document.createElement("div");
+      is.className = "is";
+      is.lang = "is";
+      is.innerHTML = line.is;
+      row.appendChild(en);
+      row.appendChild(is);
+      rail.appendChild(row);
+    });
+    // Park the rail so row 0 would be centered if shown.
+    rail.style.transform = `translateY(${RAIL_BASE}rem)`;
+  }
+  buildRail();
+
+  let currentLineIdx = -2;
+
+  function showLine(idx) {
+    if (idx === currentLineIdx) return;
+    currentLineIdx = idx;
+    if (idx < 0) {
+      rail.classList.remove("show");
+      sectionTag.classList.remove("show");
+      return;
+    }
+    rail.classList.add("show");
+    rail.style.transform = `translateY(${RAIL_BASE - idx * ROW_STRIDE}rem)`;
+    const sec = BASE_LYRICS[idx] && BASE_LYRICS[idx].s;
+    if (sec) {
+      sectionTag.textContent = sec;
+      sectionTag.classList.add("show");
     } else {
-      en.innerHTML = lineObj.en;
-      is.innerHTML = lineObj.is;
-      el.classList.remove("empty");
+      sectionTag.classList.remove("show");
     }
   }
 
@@ -700,31 +760,6 @@
     t: (SAVED && typeof SAVED[i] === "number") ? SAVED[i] : line.t,
   }));
 
-  let currentLineIdx = -2;
-
-  function showLine(idx) {
-    if (idx === currentLineIdx) return;
-    currentLineIdx = idx;
-    if (idx < 0) {
-      // Before vocals begin — no lyric slots visible at all
-      setSlot("prev",    null);
-      setSlot("current", null);
-      setSlot("next",    null);
-      sectionTag.classList.remove("show");
-    } else {
-      setSlot("prev",    BASE_LYRICS[idx - 1] || null);
-      setSlot("current", BASE_LYRICS[idx] || null);
-      setSlot("next",    BASE_LYRICS[idx + 1] || null);
-      const sec = BASE_LYRICS[idx] && BASE_LYRICS[idx].s;
-      if (sec) {
-        sectionTag.textContent = sec;
-        sectionTag.classList.add("show");
-      } else {
-        sectionTag.classList.remove("show");
-      }
-    }
-  }
-
   // ===== END KARAOKE LYRICS =====
 
   let photoData = [];        // [{ url, caption }]
@@ -766,7 +801,9 @@
     loading.classList.add("show");
     if (photoData.length) {
       activeLayer.style.backgroundImage = `url('${photoData[0].url}')`;
-      activeLayer.classList.add("active");
+      activeLayer.classList.remove("kb-1", "kb-2", "kb-3");
+      void activeLayer.offsetWidth;
+      activeLayer.classList.add("kb-1", "active");
       currentPhotoIdx = 0;
       setCaption(photoData[0].caption);
     }
@@ -775,7 +812,7 @@
       setup.style.display = "none";
       experience.setAttribute("aria-hidden", "false");
       experience.classList.add("live");
-      introCard.classList.add("show");  // Show song info during instrumental intro
+      introCard.classList.add("show");
       audio.play().catch(() => setPlayIcon(true));
     }, 700);
   });
@@ -798,7 +835,7 @@
     if (!audio.duration || isNaN(audio.duration)) return;
     const t = audio.currentTime;
 
-    // Live time display so the user can pinpoint when vocals begin.
+    // Live time display.
     const mm = Math.floor(t / 60);
     const ss = Math.floor(t % 60).toString().padStart(2, "0");
     timeNow.textContent = `${mm}:${ss}`;
@@ -820,24 +857,40 @@
       introCard.classList.remove("show");
     }
 
-    // Photos and progress bar follow the song straight through.
+    // Progress bar follows the song straight through.
     const songProgress = t / audio.duration;
     progressFill.style.width = (songProgress * 100) + "%";
 
-    if (photoData.length > 1) {
-      const segment = 1 / photoData.length;
-      const i = Math.min(photoData.length - 1, Math.floor(songProgress / segment));
-      if (i !== currentPhotoIdx) {
-        crossfadeTo(photoData[i].url);
-        setCaption(photoData[i].caption);
-        currentPhotoIdx = i;
+    // Photo cadence: first photo holds 0 → INTRO_END, remaining photos
+    // cycle through the sung portion. The first photo gets the longest
+    // dwell (it sets the mood); the others change ~every 12 seconds.
+    if (photoData.length > 0) {
+      const INTRO_END = 29;    // vocals begin
+      const SUNG_END  = 218;   // outro fade begins
+      let target;
+      if (t < INTRO_END || photoData.length === 1) {
+        target = 0;
+      } else {
+        const rest = photoData.length - 1;
+        const progress = Math.max(0, Math.min(0.9999, (t - INTRO_END) / (SUNG_END - INTRO_END)));
+        target = 1 + Math.floor(progress * rest);
+      }
+      if (target !== currentPhotoIdx) {
+        crossfadeTo(photoData[target].url);
+        setCaption(photoData[target].caption);
+        currentPhotoIdx = target;
       }
     }
   });
 
+  let kbVariant = 0;
   function crossfadeTo(url) {
     idleLayer.style.backgroundImage = `url('${url}')`;
+    // Remove all kb classes and force reflow so the animation restarts.
+    idleLayer.classList.remove("kb-1", "kb-2", "kb-3");
     void idleLayer.offsetWidth;
+    kbVariant = (kbVariant + 1) % 3;
+    idleLayer.classList.add(`kb-${kbVariant + 1}`);
     idleLayer.classList.add("active");
     activeLayer.classList.remove("active");
     [activeLayer, idleLayer] = [idleLayer, activeLayer];
