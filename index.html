@@ -267,6 +267,67 @@
   }
   .section-tag.show { opacity: 0.7; }
 
+  /* Song-info card shown during the 28s instrumental intro, fades out
+     just before the first vocal line arrives. */
+  .intro-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 9;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+    padding: 2rem;
+  }
+  .intro-card.show { opacity: 1; }
+  .intro-card .label {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--amber-soft);
+    margin-bottom: 0.4rem;
+    opacity: 0.9;
+  }
+  .intro-card .song-title {
+    font-family: "Pinyon Script", cursive;
+    font-size: clamp(3.5rem, 9vw, 6.5rem);
+    color: var(--gold);
+    line-height: 1.05;
+    margin: 0.3rem 0 0.2rem;
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.95),
+      0 4px 28px rgba(0, 0, 0, 0.85);
+  }
+  .intro-card .song-en {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    color: var(--cream);
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
+  }
+  .intro-card .artist {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2.2vw, 1.35rem);
+    color: rgba(245, 230, 200, 0.92);
+    line-height: 1.6;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+  }
+  .intro-card .artist small {
+    display: block;
+    font-size: 0.75em;
+    opacity: 0.78;
+    margin-top: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+
   /* Three lyric rows visible at once: previous, current, next */
   .lines {
     width: min(1000px, 92vw);
@@ -470,6 +531,16 @@
   <div class="caption" id="caption"></div>
   <div class="section-tag" id="section-tag"></div>
 
+  <div class="intro-card" id="intro-card">
+    <div class="label">An Icelandic Love Song</div>
+    <div class="song-title">Með þér</div>
+    <div class="song-en">With You</div>
+    <div class="artist">
+      sung by Ragnheiður Gröndal<br>&amp; Linda Sigurðardóttir
+      <small>from the album <em>Fyrir sumarið</em> · 2009</small>
+    </div>
+  </div>
+
   <div class="lyrics-frame">
     <div class="lyrics-scrim"></div>
     <div class="lines" id="lines">
@@ -510,6 +581,7 @@
   const linesEl     = $("lines");
   const caption     = $("caption");
   const sectionTag  = $("section-tag");
+  const introCard   = $("intro-card");
   const layerA      = $("layer-a");
   const layerB      = $("layer-b");
   const playPause   = $("play-pause");
@@ -634,9 +706,10 @@
     if (idx === currentLineIdx) return;
     currentLineIdx = idx;
     if (idx < 0) {
+      // Before vocals begin — no lyric slots visible at all
       setSlot("prev",    null);
       setSlot("current", null);
-      setSlot("next",    BASE_LYRICS[0] || null);
+      setSlot("next",    null);
       sectionTag.classList.remove("show");
     } else {
       setSlot("prev",    BASE_LYRICS[idx - 1] || null);
@@ -702,6 +775,7 @@
       setup.style.display = "none";
       experience.setAttribute("aria-hidden", "false");
       experience.classList.add("live");
+      introCard.classList.add("show");  // Show song info during instrumental intro
       audio.play().catch(() => setPlayIcon(true));
     }, 700);
   });
@@ -737,6 +811,14 @@
     }
     if (t > audio.duration - 8) idx = LYRICS.length - 1;
     showLine(idx);
+
+    // Intro card visible during instrumental, fades out as vocals begin.
+    const firstLineT = LYRICS[0] ? LYRICS[0].t : 28;
+    if (tForLyrics < firstLineT - 1.5) {
+      introCard.classList.add("show");
+    } else {
+      introCard.classList.remove("show");
+    }
 
     // Photos and progress bar follow the song straight through.
     const songProgress = t / audio.duration;
