@@ -267,6 +267,15 @@
     border: none;
     box-shadow: none;
   }
+  /* Per-scene override: ride at top-center, clearing the caption.
+     Use this for photos where the subject sits in the lower half. */
+  .scene-lyrics.pos-top {
+    top: max(7rem, calc(env(safe-area-inset-top, 0px) + 6rem));
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
 
   .lyric-row {
     display: grid;
@@ -583,6 +592,12 @@
     .lyric-row { gap: 0.2rem; padding: 0; }
     .is { font-size: clamp(1rem, 4.4vw, 1.3rem); }
     .en { font-size: clamp(0.78rem, 3.2vw, 1rem); }
+    .scene-lyrics.pos-top {
+      left: 4vw;
+      right: 4vw;
+      transform: none;
+      top: max(6rem, calc(env(safe-area-inset-top, 0px) + 5rem));
+    }
     .lyrics-scrim { height: 56vh; height: 56dvh; }
     .caption { font-size: clamp(1.3rem, 5.5vw, 1.8rem); }
     .intro-card .song-title { font-size: clamp(3rem, 14vw, 5rem); }
@@ -698,7 +713,7 @@
 
     // Chorus — the four seasons.
     { tStart:  88.9, tEnd: 101.8, photo:  5, lines: [16, 17, 18] },     // L18 done ~100.9
-    { tStart: 101.8, tEnd: 127.0, photo:  6, lines: [19, 20, 21] },     // L21 done ~111.2
+    { tStart: 101.8, tEnd: 127.0, photo:  6, lines: [19, 20, 21], position: 'top' },     // L21 done ~111.2 — user is at bottom of alley, lyrics ride at the top
 
     // ~17s instrumental — photo only, room to breathe.
     { tStart: 127.0, tEnd: 144.3, photo:  7, lines: [] },
@@ -728,6 +743,10 @@
   }
 
   function renderSceneInto(el, scene) {
+    // Reset any per-scene position overrides, then apply the new one.
+    el.classList.remove("pos-top");
+    if (scene.position === "top") el.classList.add("pos-top");
+
     if (!scene.lines.length) {
       el.innerHTML = "";
       return;
