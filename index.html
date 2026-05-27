@@ -980,6 +980,12 @@
 
     // Progress bar
     progressFill.style.width = ((t / audio.duration) * 100) + "%";
+
+    // Safety: the 'ended' event is unreliable on iOS Safari with .m4a files.
+    // If we're within half a second of the end, show the closing card now.
+    if (audio.duration > 5 && t >= audio.duration - 0.5) {
+      endCard.classList.add("show");
+    }
   });
 
   let kbVariant = 0;
