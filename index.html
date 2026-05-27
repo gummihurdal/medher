@@ -624,32 +624,32 @@
     // Intro: sunset photo, song-info card, no lyrics.
     { tStart:   0,    tEnd:  27.2, photo:  0, lines: [],                 intro: true },
 
-    // Verse 1 — two photo-paired quartets. Each scene starts ~0.3s before
-    // its first line is sung, so the crossfade is mid-bloom when the voice arrives.
-    { tStart:  27.2, tEnd:  42.3, photo:  1, lines: [0, 1, 2, 3] },     // L0 sung 28.72
-    { tStart:  42.3, tEnd:  58.0, photo:  2, lines: [4, 5, 6, 7] },     // L4 sung 42.64
+    // Verse 1 — each scene lingers ~0.7-1s after its last line finishes being sung,
+    // so the lyric stays on screen long enough to be read in full before the handoff.
+    { tStart:  27.2, tEnd:  43.0, photo:  1, lines: [0, 1, 2, 3] },     // L3 done ~42.4
+    { tStart:  43.0, tEnd:  58.4, photo:  2, lines: [4, 5, 6, 7] },     // L7 done ~57.6
 
     // Verse 2.
-    { tStart:  58.0, tEnd:  73.5, photo:  3, lines: [8, 9, 10, 11] },   // L8 sung 58.36
-    { tStart:  73.5, tEnd:  89.5, photo:  4, lines: [12, 13, 14, 15] }, // L12 sung 73.84
+    { tStart:  58.4, tEnd:  73.7, photo:  3, lines: [8, 9, 10, 11] },   // L11 done ~72.9
+    { tStart:  73.7, tEnd:  88.9, photo:  4, lines: [12, 13, 14, 15] }, // L15 done ~88.0
 
     // Chorus — the four seasons.
-    { tStart:  89.5, tEnd: 100.6, photo:  5, lines: [16, 17, 18] },     // L16 sung 89.78
-    { tStart: 100.6, tEnd: 127.0, photo:  6, lines: [19, 20, 21] },     // L19 sung 100.96
+    { tStart:  88.9, tEnd: 101.8, photo:  5, lines: [16, 17, 18] },     // L18 done ~100.9
+    { tStart: 101.8, tEnd: 127.0, photo:  6, lines: [19, 20, 21] },     // L21 done ~111.2
 
-    // ~17s instrumental — photo only, room to breathe before the reprise.
+    // ~17s instrumental — photo only, room to breathe.
     { tStart: 127.0, tEnd: 144.3, photo:  7, lines: [] },
 
     // Verse 1 reprise.
-    { tStart: 144.3, tEnd: 159.2, photo:  8, lines: [22, 23, 24, 25] }, // L22 sung 144.60
-    { tStart: 159.2, tEnd: 175.5, photo:  9, lines: [26, 27, 28, 29] }, // L26 sung 159.46
+    { tStart: 144.3, tEnd: 159.1, photo:  8, lines: [22, 23, 24, 25] }, // L25 done ~158.2
+    { tStart: 159.1, tEnd: 175.2, photo:  9, lines: [26, 27, 28, 29] }, // L29 done ~174.4
 
     // Chorus reprise.
-    { tStart: 175.5, tEnd: 186.5, photo: 10, lines: [30, 31, 32] },     // L30 sung 175.80
-    { tStart: 186.5, tEnd: 199.4, photo: 11, lines: [33, 34, 35] },     // L33 sung 186.84
+    { tStart: 175.2, tEnd: 186.9, photo: 10, lines: [30, 31, 32] },     // L32 done ~186.0
+    { tStart: 186.9, tEnd: 199.9, photo: 11, lines: [33, 34, 35] },     // L35 done ~199.0
 
     // Tag — the kiss, the rose.
-    { tStart: 199.4, tEnd: 218.0, photo: 12, lines: [36, 37] },         // L36 sung 199.68
+    { tStart: 199.9, tEnd: 218.0, photo: 12, lines: [36, 37] },         // L37 done ~206.0
 
     // Outro — final image, no lyrics.
     { tStart: 218.0, tEnd: 9999,  photo: 16, lines: [] },
