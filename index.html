@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Með þér</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:      #0a0d18;
+    --night-soft: #141826;
+    --cream:      #f5e6c8;
+    --cream-dim:  rgba(245, 230, 200, 0.62);
+    --amber:      #d4a574;
+    --amber-soft: #b8956a;
+    --gold:       #e6c184;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--night);
+    color: var(--cream);
+    font-family: "Cormorant Garamond", Garamond, serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(212, 165, 116, 0.18) 0%, transparent 45%),
+      radial-gradient(ellipse at 80% 70%, rgba(184, 149, 106, 0.14) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(230, 193, 132, 0.10) 0%, transparent 60%);
+    animation: flicker 9s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes flicker {
+    0%   { opacity: 0.85; transform: translate(0, 0)   scale(1); }
+    50%  { opacity: 1;    transform: translate(1%, -1%) scale(1.02); }
+    100% { opacity: 0.9;  transform: translate(-1%, 1%) scale(1.01); }
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.35'/></svg>");
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 50;
+    mix-blend-mode: overlay;
+  }
+
+  /* ====== SETUP / OPEN SCREEN ====== */
+  #setup {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: opacity 1.4s ease, transform 1.4s ease;
+  }
+  #setup.gone { opacity: 0; transform: scale(0.96); pointer-events: none; }
+
+  .ornament {
+    color: var(--amber-soft);
+    font-size: 1.4rem;
+    letter-spacing: 0.7em;
+    margin-bottom: 1.5rem;
+    opacity: 0.55;
+    padding-left: 0.7em;
+  }
+
+  .title {
+    font-family: "Pinyon Script", cursive;
+    font-size: clamp(4.5rem, 16vw, 8.5rem);
+    line-height: 0.9;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(230, 193, 132, 0.25);
+    margin-bottom: 0.6rem;
+  }
+
+  .dedication {
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+    color: var(--cream-dim);
+    letter-spacing: 0.05em;
+    margin-bottom: 3.5rem;
+  }
+  .dedication span {
+    color: var(--gold);
+    font-style: normal;
+    font-family: "Pinyon Script", cursive;
+    font-size: 1.8em;
+    vertical-align: -0.08em;
+    margin-left: 0.15em;
+  }
+
+  .begin {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    letter-spacing: 0.35em;
+    padding: 1rem 3.2rem;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    text-transform: lowercase;
+    padding-left: 3.55em;
+  }
+  .begin:hover {
+    background: var(--gold);
+    color: var(--night);
+    box-shadow: 0 0 40px rgba(230, 193, 132, 0.35);
+  }
+
+  .loading {
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--cream-dim);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .loading.show { opacity: 1; }
+
+  /* ====== EXPERIENCE ====== */
+  #experience {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 1.8s ease;
+  }
+  #experience.live { opacity: 1; }
+
+  .photo-layer {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 2.4s ease-in-out;
+    transform: scale(1.02);
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  .photo-layer.active { opacity: 1; }
+  @keyframes drift {
+    0%   { transform: scale(1.02) translate(0, 0); }
+    100% { transform: scale(1.09) translate(-1.5%, -1%); }
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(10, 13, 24, 0.55) 0%, rgba(10, 13, 24, 0.25) 30%, rgba(10, 13, 24, 0.55) 70%, rgba(10, 13, 24, 0.92) 100%),
+      radial-gradient(ellipse at center, transparent 30%, rgba(10, 13, 24, 0.6) 100%);
+    pointer-events: none;
+  }
+
+  .lyrics-frame {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .lyrics-viewport {
+    width: min(640px, 88vw);
+    height: 62vh;
+    height: 62dvh;
+    overflow: hidden;
+    position: relative;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
+            mask-image: linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
+  }
+
+  .lyrics-scroll {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 31vh 0;
+    padding: 31dvh 0;
+    text-align: center;
+    will-change: transform;
+  }
+
+  .stanza { margin-bottom: 5rem; }
+  .stanza:last-child { margin-bottom: 0; }
+
+  .en {
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.35rem, 3.6vw, 1.85rem);
+    line-height: 1.6;
+    color: var(--cream);
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 40px rgba(0, 0, 0, 0.6);
+    margin-bottom: 1.2rem;
+  }
+  .en em { color: var(--gold); font-style: italic; }
+
+  .is {
+    font-weight: 300;
+    font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+    line-height: 1.7;
+    color: var(--cream-dim);
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.85);
+  }
+
+  .divider {
+    width: 30px;
+    height: 1px;
+    background: var(--amber-soft);
+    opacity: 0.5;
+    margin: 0.8rem auto;
+  }
+
+  .controls {
+    position: absolute;
+    bottom: max(2rem, env(safe-area-inset-bottom, 2rem));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    pointer-events: auto;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  #experience.live .controls { opacity: 0.9; }
+  #experience.live:hover .controls { opacity: 1; }
+
+  .ctrl-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(230, 193, 132, 0.4);
+    background: rgba(10, 13, 24, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--gold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  .ctrl-btn:hover {
+    background: rgba(230, 193, 132, 0.15);
+    border-color: var(--gold);
+  }
+  .ctrl-btn svg { width: 18px; height: 18px; }
+
+  .progress-rail {
+    width: clamp(160px, 30vw, 280px);
+    height: 1px;
+    background: rgba(245, 230, 200, 0.18);
+    position: relative;
+  }
+  .progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(230, 193, 132, 0.6);
+  }
+
+  .end-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(10, 13, 24, 0.85), rgba(10, 13, 24, 0.96));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.5s ease;
+    z-index: 30;
+  }
+  .end-card.show { opacity: 1; pointer-events: auto; }
+  .end-card .closing {
+    font-family: "Pinyon Script", cursive;
+    color: var(--gold);
+    font-size: clamp(3rem, 10vw, 5rem);
+    margin-bottom: 1rem;
+  }
+  .end-card .signed {
+    font-style: italic;
+    color: var(--cream-dim);
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.05em;
+  }
+  .end-card .replay {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.7rem 2rem;
+    font-family: inherit;
+    font-style: italic;
+    font-size: 1rem;
+    letter-spacing: 0.25em;
+    cursor: pointer;
+    text-transform: lowercase;
+    transition: all 0.4s ease;
+  }
+  .end-card .replay:hover {
+    background: var(--gold);
+    color: var(--night);
+  }
+
+  @media (max-width: 480px) {
+    .ornament { letter-spacing: 0.5em; }
+    .stanza { margin-bottom: 4rem; }
+    .lyrics-viewport { height: 68vh; height: 68dvh; }
+    .lyrics-scroll { padding: 34vh 0; padding: 34dvh 0; }
+  }
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <div class="ornament">· · ·</div>
+  <h1 class="title">Með þér</h1>
+  <p class="dedication">for <span>Grace</span></p>
+  <button class="begin" id="begin-btn">begin</button>
+  <p class="loading" id="loading">preparing…</p>
+</section>
+
+<section id="experience" aria-hidden="true">
+  <div class="photo-layer" id="layer-a"></div>
+  <div class="photo-layer" id="layer-b"></div>
+  <div class="vignette"></div>
+
+  <div class="lyrics-frame">
+    <div class="lyrics-viewport">
+      <div class="lyrics-scroll" id="lyrics-scroll">
+
+        <div class="stanza">
+          <div class="en">
+            Can't you see — we were born<br>
+            to stand side by side,<br>
+            to set out on the road together<br>
+            and never look back.<br>
+            With you I want to grow old<br>
+            and walk the road of life.<br>
+            With you my life runs richer;<br>
+            with you, I am simply me.
+          </div>
+          <div class="divider"></div>
+          <div class="is">
+            Sérðu ekki við fæddumst til að standa hlið við hlið.<br>
+            Og halda út á veginn saman og líta aldrei við.<br>
+            Með þér vil ég verða gömul og ganga lífsins veg.<br>
+            Með þér er líf mitt ríkara, með þér er ég bara ég.
+          </div>
+        </div>
+
+        <div class="stanza">
+          <div class="en">
+            They say I have changed,<br>
+            that I sing only of the children, and of you.<br>
+            I sing of what matters —<br>
+            what matters to me alone.<br>
+            One thing you should know: I love you<br>
+            more than life itself.<br>
+            Without you, I believe,<br>
+            my life would be neither whole nor half.
+          </div>
+          <div class="divider"></div>
+          <div class="is">
+            Menn segja að ég sé breytt og syngi um börnin og þig.<br>
+            Ég syng um það sem skiptir máli aðeins fyrir mig.<br>
+            Eitt mátt þú vita ég elska þig meir en lífið sjálft.<br>
+            Ég trúi án þín mitt líf væri hvorki heilt né hálft.
+          </div>
+        </div>
+
+        <div class="stanza">
+          <div class="en">
+            With you, spring is lovely<br>
+            and summer is glory itself.<br>
+            With you, autumn is a wandering,<br>
+            an adventure beneath every stone.<br>
+            With you, winter is candlelight —<br>
+            kisses, and now and then a rose.
+          </div>
+          <div class="divider"></div>
+          <div class="is">
+            Með þér er vorið yndislegt og sumarið dýrðin ein.<br>
+            Með þér er haustið gönguför og ævintýr undir stein.<br>
+            Með þér er veturinn kertaljós, koss og stöku rós.
+          </div>
+        </div>
+
+        <div class="stanza">
+          <div class="en">
+            Can't you see — we were born<br>
+            to stand side by side,<br>
+            to set out on the road together<br>
+            and never look back.<br>
+            With you I want to grow old<br>
+            and walk the road of life.<br>
+            With you my life runs richer;<br>
+            with you, I am simply me.
+          </div>
+          <div class="divider"></div>
+          <div class="is">
+            Sérðu ekki við fæddumst til að standa hlið við hlið.<br>
+            Og halda út á veginn saman og líta aldrei við.<br>
+            Með þér vil ég verða gömul og ganga lífsins veg.<br>
+            Með þér er líf mitt ríkara, með þér er ég bara ég.
+          </div>
+        </div>
+
+        <div class="stanza">
+          <div class="en">
+            With you, spring is lovely<br>
+            and summer is glory itself.<br>
+            With you, autumn is a wandering,<br>
+            an adventure beneath every stone.<br>
+            With you, winter is candlelight —<br>
+            kisses, and now and then a rose.
+          </div>
+          <div class="divider"></div>
+          <div class="is">
+            Með þér er vorið yndislegt og sumarið dýrðin ein.<br>
+            Með þér er haustið gönguför og ævintýr undir stein.<br>
+            Með þér er veturinn kertaljós, koss og stöku rós.
+          </div>
+        </div>
+
+        <div class="stanza">
+          <div class="en">
+            With you, winter is candlelight —<br>
+            a kiss, and now and then <em>a rose</em>.
+          </div>
+          <div class="divider"></div>
+          <div class="is">
+            Með þér er veturinn kertaljós, koss og stöku rós.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="play-pause" aria-label="Pause">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="0.5"/><rect x="14" y="5" width="4" height="14" rx="0.5"/></svg>
+    </button>
+    <div class="progress-rail"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <div class="end-card" id="end-card">
+    <p class="closing">always</p>
+    <p class="signed">— G.</p>
+    <button class="replay" id="replay-btn">play again</button>
+  </div>
+
+  <audio id="audio" preload="auto" src="song.m4a"></audio>
+</section>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  const beginBtn    = $("begin-btn");
+  const loading     = $("loading");
+  const setup       = $("setup");
+  const experience  = $("experience");
+  const audio       = $("audio");
+  const lyrics      = $("lyrics-scroll");
+  const lyricsView  = lyrics.parentElement;
+  const layerA      = $("layer-a");
+  const layerB      = $("layer-b");
+  const playPause   = $("play-pause");
+  const progressFill= $("progress-fill");
+  const endCard     = $("end-card");
+  const replayBtn   = $("replay-btn");
+
+  let photoURLs = [];
+  let currentPhotoIdx = -1;
+  let activeLayer = layerA;
+  let idleLayer   = layerB;
+
+  // Load photos manifest in the background
+  fetch("photos.json", { cache: "no-cache" })
+    .then((r) => (r.ok ? r.json() : []))
+    .then((list) => {
+      if (Array.isArray(list) && list.length) {
+        photoURLs = list.map((p) => `photos/${p}`);
+        // Preload first
+        const pre = new Image();
+        pre.src = photoURLs[0];
+      }
+    })
+    .catch(() => {});
+
+  beginBtn.addEventListener("click", () => {
+    loading.classList.add("show");
+    if (photoURLs.length) {
+      activeLayer.style.backgroundImage = `url('${photoURLs[0]}')`;
+      activeLayer.classList.add("active");
+      currentPhotoIdx = 0;
+    }
+    setup.classList.add("gone");
+    setTimeout(() => {
+      setup.style.display = "none";
+      experience.setAttribute("aria-hidden", "false");
+      experience.classList.add("live");
+      audio.play().catch(() => setPlayIcon(true));
+    }, 700);
+  });
+
+  playPause.addEventListener("click", () => {
+    if (audio.paused) audio.play(); else audio.pause();
+  });
+
+  audio.addEventListener("play",  () => setPlayIcon(false));
+  audio.addEventListener("pause", () => setPlayIcon(true));
+
+  function setPlayIcon(showPlay) {
+    playPause.innerHTML = showPlay
+      ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="0.5"/><rect x="14" y="5" width="4" height="14" rx="0.5"/></svg>';
+    playPause.setAttribute("aria-label", showPlay ? "Play" : "Pause");
+  }
+
+  audio.addEventListener("timeupdate", () => {
+    if (!audio.duration || isNaN(audio.duration)) return;
+    const progress = audio.currentTime / audio.duration;
+
+    const totalScroll = lyrics.scrollHeight - lyricsView.clientHeight;
+    lyrics.style.transform = `translateY(${-(progress * totalScroll)}px)`;
+
+    progressFill.style.width = (progress * 100) + "%";
+
+    if (photoURLs.length > 1) {
+      const segment = 1 / photoURLs.length;
+      const idx = Math.min(photoURLs.length - 1, Math.floor(progress / segment));
+      if (idx !== currentPhotoIdx) {
+        crossfadeTo(photoURLs[idx]);
+        currentPhotoIdx = idx;
+      }
+    }
+  });
+
+  function crossfadeTo(url) {
+    idleLayer.style.backgroundImage = `url('${url}')`;
+    void idleLayer.offsetWidth;
+    idleLayer.classList.add("active");
+    activeLayer.classList.remove("active");
+    [activeLayer, idleLayer] = [idleLayer, activeLayer];
+  }
+
+  audio.addEventListener("ended", () => endCard.classList.add("show"));
+
+  replayBtn.addEventListener("click", () => {
+    endCard.classList.remove("show");
+    audio.currentTime = 0;
+    currentPhotoIdx = -1;
+    audio.play();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" && experience.classList.contains("live")) {
+      e.preventDefault();
+      playPause.click();
+    }
+  });
+})();
+</script>
+</body>
+</html>
