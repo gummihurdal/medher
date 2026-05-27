@@ -663,8 +663,8 @@
   </div>
 
   <div class="end-card" id="end-card">
-    <p class="closing-is">Með þér, alltaf</p>
-    <p class="closing">With you, always.</p>
+    <p class="closing-is">Ég elska þig, alltaf</p>
+    <p class="closing">Love you, always.</p>
     <p class="signed">— G.</p>
     <button class="replay" id="replay-btn">play again</button>
   </div>
@@ -987,9 +987,10 @@
     // Progress bar
     progressFill.style.width = ((t / audio.duration) * 100) + "%";
 
-    // Safety: the 'ended' event is unreliable on iOS Safari with .m4a files.
-    // If we're within half a second of the end, show the closing card now.
-    if (audio.duration > 5 && t >= audio.duration - 0.5) {
+    // Show closing card during the outro fade — the song fades from ~218s
+    // and ends at ~229s, but iOS Safari can stop firing timeupdate near the
+    // very end, so we trigger well within active playback to guarantee it.
+    if (t >= 218) {
       endCard.classList.add("show");
     }
   });
