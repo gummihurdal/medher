@@ -1,19 +1,70 @@
 [
-  { "file": "01b-sunset-later.jpg", "caption": "A romantic evening" },
-  { "file": "02-grace-boat.jpg",    "caption": "A smile that melts any heart" },
-  { "file": "11-landscape.jpg",     "caption": "An inspiring view" },
-  { "file": "18-garden-aerial.jpg", "caption": "Our garden of quiet hours" },
-  { "file": "19-terrace-awning.jpg","caption": "Where the days unwind" },
-  { "file": "01-sunset.jpg",        "caption": "Light at the edge of evening" },
-  { "file": "16-alley.jpg",         "caption": "On the way to find you" },
-  { "file": "17-lugano-view.jpg",   "caption": "Lugano in the morning" },
-  { "file": "03-lugano-balcony.jpg","caption": "Our balcony, our world" },
-  { "file": "04-lugano-balcony-2.jpg","caption": "From this height, with you" },
-  { "file": "15-reclining.jpg",     "caption": "Finally still" },
-  { "file": "12-sunset-window.jpg", "caption": "Quiet through the glass" },
-  { "file": "10-swing.jpg",         "caption": "You bring the child out in me" },
-  { "file": "14-boat-wheel.jpg",    "caption": "Hand on the wheel, eyes on you" },
-  { "file": "13-sunset-alt.jpg",    "caption": "Another sky for us to keep" },
-  { "file": "20-sunset-closer.jpg", "caption": "The day will not let go" },
-  { "file": "99-bench.jpg",         "caption": "And someday, just like this" }
+  {
+    "file": "01b-sunset-later.jpg",
+    "caption": "An unforgettable romantic evening"
+  },
+  {
+    "file": "02-grace-boat.jpg",
+    "caption": "A smile that melts any heart"
+  },
+  {
+    "file": "11-landscape.jpg",
+    "caption": "An inspiring view"
+  },
+  {
+    "file": "18-garden-aerial.jpg",
+    "caption": "Our garden of quiet hours"
+  },
+  {
+    "file": "19-terrace-awning.jpg",
+    "caption": "Where the days unwind"
+  },
+  {
+    "file": "01-sunset.jpg",
+    "caption": "Enjoying the sunset together"
+  },
+  {
+    "file": "16-alley.jpg",
+    "caption": "Exploring the city together"
+  },
+  {
+    "file": "17-lugano-view.jpg",
+    "caption": "Lugano in the afternoon"
+  },
+  {
+    "file": "03-lugano-balcony.jpg",
+    "caption": "Our balcony, our world"
+  },
+  {
+    "file": "04-lugano-balcony-2.jpg",
+    "caption": "From this height, with you"
+  },
+  {
+    "file": "15-reclining.jpg",
+    "caption": "Dreaming of life together with Grace"
+  },
+  {
+    "file": "12-sunset-window.jpg",
+    "caption": "Quiet through the glass"
+  },
+  {
+    "file": "10-swing.jpg",
+    "caption": "You bring the child out in me"
+  },
+  {
+    "file": "14-boat-wheel.jpg",
+    "caption": "Hand on the wheel, eyes on you"
+  },
+  {
+    "file": "13-sunset-alt.jpg",
+    "caption": "Another sky for us to keep"
+  },
+  {
+    "file": "20-sunset-closer.jpg",
+    "caption": "The day will not let go"
+  },
+  {
+    "file": "99-bench.jpg",
+    "caption": "And someday, just like this"
+  }
 ]
