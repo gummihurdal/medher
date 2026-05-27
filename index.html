@@ -225,20 +225,49 @@
     transition: opacity 0.8s ease;
   }
 
-  /* Single karaoke line: EN left, IS right, centered on screen */
-  .line {
+  /* Romantic caption for each photo — top of screen, soft and italic */
+  .caption {
+    position: absolute;
+    top: max(2.2rem, env(safe-area-inset-top, 2.2rem));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 8;
+    font-family: "Pinyon Script", cursive;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    color: var(--gold);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.95),
+      0 2px 16px rgba(0, 0, 0, 0.85),
+      0 0 50px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    max-width: 90vw;
+    line-height: 1.1;
+  }
+  .caption.show { opacity: 0.88; }
+
+  /* Three lyric rows visible at once: previous, current, next */
+  .lines {
     width: min(1000px, 92vw);
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    z-index: 7;
+    position: relative;
+  }
+  .row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
     align-items: center;
-    opacity: 0;
-    transition: opacity 0.6s ease, transform 0.6s ease;
-    transform: translateY(8px);
-    z-index: 7;
-    position: relative;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .line.show { opacity: 1; transform: translateY(0); }
+  .row.prev    { opacity: 0.42; transform: scale(0.96); }
+  .row.current { opacity: 1;    transform: scale(1); }
+  .row.next    { opacity: 0.55; transform: scale(0.96); }
+  .row.empty   { opacity: 0; }
 
   .en, .is {
     font-style: italic;
@@ -251,15 +280,18 @@
       0 0 40px rgba(0, 0, 0, 0.7);
   }
   .en {
-    font-size: clamp(1.4rem, 3.2vw, 2.1rem);
+    font-size: clamp(1.15rem, 2.6vw, 1.7rem);
     text-align: right;
   }
   .en em { color: var(--gold); }
   .is {
-    font-size: clamp(1.2rem, 2.8vw, 1.85rem);
+    font-size: clamp(1rem, 2.3vw, 1.5rem);
     text-align: left;
     color: rgba(245, 230, 200, 0.92);
   }
+  /* Slightly larger current line to make it the focal point */
+  .row.current .en { font-size: clamp(1.35rem, 3vw, 1.95rem); }
+  .row.current .is { font-size: clamp(1.18rem, 2.65vw, 1.7rem); }
 
   .controls {
     position: absolute;
@@ -395,10 +427,14 @@
 
   @media (max-width: 480px) {
     .ornament { letter-spacing: 0.5em; }
-    .line { gap: 1rem; }
-    .en { font-size: clamp(1.05rem, 4.4vw, 1.4rem); }
-    .is { font-size: clamp(0.95rem, 4vw, 1.25rem); }
-    .lyrics-scrim { height: 40vh; height: 40dvh; }
+    .lines { gap: 0.9rem; }
+    .row { gap: 1rem; }
+    .en { font-size: clamp(0.9rem, 3.6vw, 1.15rem); }
+    .is { font-size: clamp(0.85rem, 3.4vw, 1.05rem); }
+    .row.current .en { font-size: clamp(1.05rem, 4.4vw, 1.4rem); }
+    .row.current .is { font-size: clamp(0.95rem, 4vw, 1.25rem); }
+    .lyrics-scrim { height: 50vh; height: 50dvh; }
+    .caption { font-size: clamp(1.3rem, 5.5vw, 1.8rem); }
   }
 </style>
 </head>
@@ -417,11 +453,14 @@
   <div class="photo-layer" id="layer-b"></div>
   <div class="vignette"></div>
 
+  <div class="caption" id="caption"></div>
+
   <div class="lyrics-frame">
     <div class="lyrics-scrim"></div>
-    <div class="line" id="line">
-      <div class="en" id="line-en"></div>
-      <div class="is" id="line-is" lang="is"></div>
+    <div class="lines" id="lines">
+      <div class="row prev"    data-slot="prev">    <div class="en"></div><div class="is" lang="is"></div></div>
+      <div class="row current" data-slot="current"> <div class="en"></div><div class="is" lang="is"></div></div>
+      <div class="row next"    data-slot="next">    <div class="en"></div><div class="is" lang="is"></div></div>
     </div>
   </div>
 
@@ -453,9 +492,8 @@
   const setup       = $("setup");
   const experience  = $("experience");
   const audio       = $("audio");
-  const lineEl      = $("line");
-  const lineEn      = $("line-en");
-  const lineIs      = $("line-is");
+  const linesEl     = $("lines");
+  const caption     = $("caption");
   const layerA      = $("layer-a");
   const layerB      = $("layer-b");
   const playPause   = $("play-pause");
@@ -466,6 +504,27 @@
   const progressFill= $("progress-fill");
   const endCard     = $("end-card");
   const replayBtn   = $("replay-btn");
+
+  // Slot elements
+  const slots = {
+    prev:    linesEl.querySelector('[data-slot="prev"]'),
+    current: linesEl.querySelector('[data-slot="current"]'),
+    next:    linesEl.querySelector('[data-slot="next"]'),
+  };
+  function setSlot(slotName, lineObj) {
+    const el = slots[slotName];
+    const en = el.querySelector(".en");
+    const is = el.querySelector(".is");
+    if (!lineObj) {
+      en.innerHTML = "";
+      is.innerHTML = "";
+      el.classList.add("empty");
+    } else {
+      en.innerHTML = lineObj.en;
+      is.innerHTML = lineObj.is;
+      el.classList.remove("empty");
+    }
+  }
 
   // Persistent timing offset (seconds) — user-adjustable with « » buttons.
   // Positive value = lyrics appear LATER. Negative value = lyrics appear EARLIER.
@@ -553,49 +612,66 @@
     t: (SAVED && typeof SAVED[i] === "number") ? SAVED[i] : line.t,
   }));
 
-  let currentLineIdx = -2; // -2 = uninitialized; -1 = before first line
+  let currentLineIdx = -2;
 
   function showLine(idx) {
     if (idx === currentLineIdx) return;
     currentLineIdx = idx;
-    lineEl.classList.remove("show");
-    setTimeout(() => {
-      if (idx < 0) {
-        lineEn.innerHTML = "";
-        lineIs.innerHTML = "";
-      } else {
-        lineEn.innerHTML = LYRICS[idx].en;
-        lineIs.innerHTML = LYRICS[idx].is;
-        lineEl.classList.add("show");
-      }
-    }, 250);
+    if (idx < 0) {
+      setSlot("prev",    null);
+      setSlot("current", null);
+      setSlot("next",    BASE_LYRICS[0] || null);
+    } else {
+      setSlot("prev",    BASE_LYRICS[idx - 1] || null);
+      setSlot("current", BASE_LYRICS[idx] || null);
+      setSlot("next",    BASE_LYRICS[idx + 1] || null);
+    }
   }
 
   // ===== END KARAOKE LYRICS =====
 
-  let photoURLs = [];
+  let photoData = [];        // [{ url, caption }]
   let currentPhotoIdx = -1;
   let activeLayer = layerA;
   let idleLayer   = layerB;
 
-  // Load photos manifest in the background
+  // Load photos manifest in the background. Supports both formats:
+  //   ["a.jpg", "b.jpg", ...]
+  //   [{file: "a.jpg", caption: "..."}, ...]
   fetch("photos.json", { cache: "no-cache" })
     .then((r) => (r.ok ? r.json() : []))
     .then((list) => {
-      if (Array.isArray(list) && list.length) {
-        photoURLs = list.map((p) => `photos/${p}`);
+      if (!Array.isArray(list)) return;
+      photoData = list.map((entry) => {
+        if (typeof entry === "string") return { url: `photos/${entry}`, caption: "" };
+        return { url: `photos/${entry.file}`, caption: entry.caption || "" };
+      });
+      if (photoData.length) {
         const pre = new Image();
-        pre.src = photoURLs[0];
+        pre.src = photoData[0].url;
       }
     })
     .catch(() => {});
 
+  function setCaption(text) {
+    if (!text) {
+      caption.classList.remove("show");
+      return;
+    }
+    caption.classList.remove("show");
+    setTimeout(() => {
+      caption.textContent = text;
+      caption.classList.add("show");
+    }, 350);
+  }
+
   beginBtn.addEventListener("click", () => {
     loading.classList.add("show");
-    if (photoURLs.length) {
-      activeLayer.style.backgroundImage = `url('${photoURLs[0]}')`;
+    if (photoData.length) {
+      activeLayer.style.backgroundImage = `url('${photoData[0].url}')`;
       activeLayer.classList.add("active");
       currentPhotoIdx = 0;
+      setCaption(photoData[0].caption);
     }
     setup.classList.add("gone");
     setTimeout(() => {
@@ -630,10 +706,7 @@
     timeNow.textContent = `${mm}:${ss}`;
 
     // Effective time for lyric lookup, including user offset.
-    // If timingOffset > 0, lyrics appear later (we pretend less time has elapsed).
     const tForLyrics = t - timingOffset;
-
-    // Find the index of the line that should currently be shown.
     let idx = -1;
     for (let i = LYRICS.length - 1; i >= 0; i--) {
       if (LYRICS[i].t <= tForLyrics) { idx = i; break; }
@@ -645,11 +718,12 @@
     const songProgress = t / audio.duration;
     progressFill.style.width = (songProgress * 100) + "%";
 
-    if (photoURLs.length > 1) {
-      const segment = 1 / photoURLs.length;
-      const i = Math.min(photoURLs.length - 1, Math.floor(songProgress / segment));
+    if (photoData.length > 1) {
+      const segment = 1 / photoData.length;
+      const i = Math.min(photoData.length - 1, Math.floor(songProgress / segment));
       if (i !== currentPhotoIdx) {
-        crossfadeTo(photoURLs[i]);
+        crossfadeTo(photoData[i].url);
+        setCaption(photoData[i].caption);
         currentPhotoIdx = i;
       }
     }
