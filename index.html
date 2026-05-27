@@ -219,18 +219,23 @@
     z-index: 6;
   }
 
-  /* Lyrics for the current scene — a small stack of 2-4 lines,
-     fades in/out as a single unit with the photo. No scrolling, no flying. */
+  /* Lyrics for the current scene. Two of these layers stack on top of each
+     other so we can crossfade smoothly between scenes — new rises as old recedes,
+     no dead moment between them. */
   .scene-lyrics {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: min(1000px, 92vw);
     z-index: 7;
     display: flex;
     flex-direction: column;
     gap: 1.4rem;
     opacity: 0;
-    transition: opacity 0.9s ease;
+    transition: opacity 1s ease;
     padding: 1rem 1.5rem;
+    pointer-events: none;
   }
   .scene-lyrics.show { opacity: 1; }
 
@@ -554,7 +559,8 @@
 
   <div class="lyrics-frame">
     <div class="lyrics-scrim"></div>
-    <div class="scene-lyrics" id="scene-lyrics"></div>
+    <div class="scene-lyrics" id="scene-a"></div>
+    <div class="scene-lyrics" id="scene-b"></div>
   </div>
 
   <div class="controls">
@@ -588,7 +594,8 @@
   const audio       = $("audio");
   const caption     = $("caption");
   const sectionTag  = $("section-tag");
-  const sceneLyrics = $("scene-lyrics");
+  const sceneA      = $("scene-a");
+  const sceneB      = $("scene-b");
   const introCard   = $("intro-card");
   const layerA      = $("layer-a");
   const layerB      = $("layer-b");
@@ -617,37 +624,40 @@
     // Intro: sunset photo, song-info card, no lyrics.
     { tStart:   0,    tEnd:  27.2, photo:  0, lines: [],                 intro: true },
 
-    // Verse 1 — two photo-paired quartets.
-    { tStart:  27.2, tEnd:  41.0, photo:  1, lines: [0, 1, 2, 3] },
-    { tStart:  41.0, tEnd:  56.5, photo:  2, lines: [4, 5, 6, 7] },
+    // Verse 1 — two photo-paired quartets. Each scene starts ~0.3s before
+    // its first line is sung, so the crossfade is mid-bloom when the voice arrives.
+    { tStart:  27.2, tEnd:  42.3, photo:  1, lines: [0, 1, 2, 3] },     // L0 sung 28.72
+    { tStart:  42.3, tEnd:  58.0, photo:  2, lines: [4, 5, 6, 7] },     // L4 sung 42.64
 
-    // Verse 2 — confession.
-    { tStart:  56.5, tEnd:  72.0, photo:  3, lines: [8, 9, 10, 11] },
-    { tStart:  72.0, tEnd:  88.0, photo:  4, lines: [12, 13, 14, 15] },
+    // Verse 2.
+    { tStart:  58.0, tEnd:  73.5, photo:  3, lines: [8, 9, 10, 11] },   // L8 sung 58.36
+    { tStart:  73.5, tEnd:  89.5, photo:  4, lines: [12, 13, 14, 15] }, // L12 sung 73.84
 
     // Chorus — the four seasons.
-    { tStart:  88.0, tEnd:  99.2, photo:  5, lines: [16, 17, 18] },
-    { tStart:  99.2, tEnd: 127.0, photo:  6, lines: [19, 20, 21] },
+    { tStart:  89.5, tEnd: 100.6, photo:  5, lines: [16, 17, 18] },     // L16 sung 89.78
+    { tStart: 100.6, tEnd: 127.0, photo:  6, lines: [19, 20, 21] },     // L19 sung 100.96
 
-    // 17-second instrumental — photo only, room to breathe.
-    { tStart: 127.0, tEnd: 143.0, photo:  7, lines: [] },
+    // ~17s instrumental — photo only, room to breathe before the reprise.
+    { tStart: 127.0, tEnd: 144.3, photo:  7, lines: [] },
 
     // Verse 1 reprise.
-    { tStart: 143.0, tEnd: 157.8, photo:  8, lines: [22, 23, 24, 25] },
-    { tStart: 157.8, tEnd: 174.0, photo:  9, lines: [26, 27, 28, 29] },
+    { tStart: 144.3, tEnd: 159.2, photo:  8, lines: [22, 23, 24, 25] }, // L22 sung 144.60
+    { tStart: 159.2, tEnd: 175.5, photo:  9, lines: [26, 27, 28, 29] }, // L26 sung 159.46
 
     // Chorus reprise.
-    { tStart: 174.0, tEnd: 185.2, photo: 10, lines: [30, 31, 32] },
-    { tStart: 185.2, tEnd: 198.0, photo: 11, lines: [33, 34, 35] },
+    { tStart: 175.5, tEnd: 186.5, photo: 10, lines: [30, 31, 32] },     // L30 sung 175.80
+    { tStart: 186.5, tEnd: 199.4, photo: 11, lines: [33, 34, 35] },     // L33 sung 186.84
 
     // Tag — the kiss, the rose.
-    { tStart: 198.0, tEnd: 218.0, photo: 12, lines: [36, 37] },
+    { tStart: 199.4, tEnd: 218.0, photo: 12, lines: [36, 37] },         // L36 sung 199.68
 
-    // Outro / final image — the bench, the future. No lyrics.
+    // Outro — final image, no lyrics.
     { tStart: 218.0, tEnd: 9999,  photo: 16, lines: [] },
   ];
 
   let currentSceneIdx = -1;
+  let activeScene = sceneA;
+  let idleScene   = sceneB;
 
   function findSceneAt(t) {
     for (let i = SCENES.length - 1; i >= 0; i--) {
@@ -656,17 +666,16 @@
     return 0;
   }
 
-  function renderSceneLyrics(scene) {
+  function renderSceneInto(el, scene) {
     if (!scene.lines.length) {
-      sceneLyrics.innerHTML = "";
+      el.innerHTML = "";
       return;
     }
-    const html = scene.lines.map((idx) => {
-      const line = BASE_LYRICS[idx];
+    el.innerHTML = scene.lines.map((i) => {
+      const line = BASE_LYRICS[i];
       if (!line) return "";
       return `<div class="lyric-row"><div class="en">${line.en}</div><div class="is" lang="is">${line.is}</div></div>`;
     }).join("");
-    sceneLyrics.innerHTML = html;
   }
 
   function applyScene(idx) {
@@ -676,14 +685,22 @@
     const prevScene = currentSceneIdx >= 0 ? SCENES[currentSceneIdx] : null;
     currentSceneIdx = idx;
 
-    // Fade lyrics OUT first, swap content, fade IN
-    sceneLyrics.classList.remove("show");
-    setTimeout(() => {
-      renderSceneLyrics(scene);
-      if (scene.lines.length) sceneLyrics.classList.add("show");
-    }, 400);
+    // Crossfade: paint new content into the IDLE layer, then swap visibility
+    // simultaneously so the new rises as the old recedes — no dead moment.
+    renderSceneInto(idleScene, scene);
+    void idleScene.offsetWidth; // force reflow before opacity change
 
-    // Crossfade photo + caption when the photo index changes
+    if (scene.lines.length) {
+      idleScene.classList.add("show");
+    } else {
+      idleScene.classList.remove("show");
+    }
+    activeScene.classList.remove("show");
+
+    // Swap roles
+    [activeScene, idleScene] = [idleScene, activeScene];
+
+    // Crossfade photo + caption only when the scene's photo changes
     if (!prevScene || prevScene.photo !== scene.photo) {
       const p = photoData[scene.photo];
       if (p) {
