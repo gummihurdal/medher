@@ -186,13 +186,32 @@
   }
 
   .lyrics-viewport {
-    width: min(640px, 88vw);
+    width: min(960px, 94vw);
     height: 62vh;
     height: 62dvh;
     overflow: hidden;
     position: relative;
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
             mask-image: linear-gradient(180deg, transparent 0%, black 18%, black 82%, transparent 100%);
+  }
+
+  /* Soft dark scrim behind the lyrics column so text stays readable
+     even on bright clouds / pale photos. Sits between photos and text. */
+  .lyrics-scrim {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: min(1000px, 96vw);
+    height: 100%;
+    background: radial-gradient(
+      ellipse 70% 60% at center,
+      rgba(10, 13, 24, 0.78) 0%,
+      rgba(10, 13, 24, 0.55) 45%,
+      rgba(10, 13, 24, 0) 85%
+    );
+    pointer-events: none;
+    z-index: 6;
   }
 
   .lyrics-scroll {
@@ -202,38 +221,44 @@
     top: 0;
     padding: 31vh 0;
     padding: 31dvh 0;
-    text-align: center;
     will-change: transform;
   }
 
-  .stanza { margin-bottom: 7rem; }
+  .stanza {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 3rem;
+    margin-bottom: 6rem;
+    align-items: start;
+  }
   .stanza:last-child { margin-bottom: 0; }
 
   .en {
     font-style: italic;
     font-weight: 400;
-    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    font-size: clamp(1.15rem, 2.6vw, 1.6rem);
     line-height: 1.55;
     color: var(--cream);
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 40px rgba(0, 0, 0, 0.6);
+    text-align: right;
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.95),
+      0 2px 10px rgba(0, 0, 0, 0.9),
+      0 0 30px rgba(0, 0, 0, 0.7);
   }
   .en em { color: var(--gold); font-style: italic; }
 
   .is {
     font-weight: 300;
-    font-size: clamp(0.85rem, 2.2vw, 1.05rem);
-    line-height: 1.7;
+    font-size: clamp(1rem, 2.2vw, 1.35rem);
+    line-height: 1.6;
     color: var(--cream-dim);
-    letter-spacing: 0.02em;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.85);
-  }
-
-  .divider {
-    width: 30px;
-    height: 1px;
-    background: var(--amber-soft);
-    opacity: 0.5;
-    margin: 0.8rem auto;
+    letter-spacing: 0.01em;
+    text-align: left;
+    font-style: italic;
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.95),
+      0 1px 8px rgba(0, 0, 0, 0.9),
+      0 0 20px rgba(0, 0, 0, 0.6);
   }
 
   .controls {
@@ -337,9 +362,11 @@
 
   @media (max-width: 480px) {
     .ornament { letter-spacing: 0.5em; }
-    .stanza { margin-bottom: 5.5rem; }
+    .stanza { margin-bottom: 4.5rem; gap: 0.8rem 1rem; }
     .lyrics-viewport { height: 68vh; height: 68dvh; }
     .lyrics-scroll { padding: 34vh 0; padding: 34dvh 0; }
+    .en { font-size: clamp(0.92rem, 3.4vw, 1.15rem); }
+    .is { font-size: clamp(0.82rem, 3vw, 1rem); }
   }
 </style>
 </head>
@@ -360,6 +387,7 @@
 
   <div class="lyrics-frame">
     <div class="lyrics-viewport">
+      <div class="lyrics-scrim"></div>
       <div class="lyrics-scroll" id="lyrics-scroll">
 
         <div class="stanza">
@@ -372,6 +400,16 @@
             and walk the road of life.<br>
             With you my life runs richer;<br>
             with you, I am simply me.
+          </div>
+          <div class="is" lang="is">
+            Sérðu ekki við fæddumst til að<br>
+            standa hlið við hlið.<br>
+            Og halda út á veginn saman<br>
+            og líta aldrei við.<br>
+            Með þér vil ég verða gömul<br>
+            og ganga lífsins veg.<br>
+            Með þér er líf mitt ríkara,<br>
+            með þér er ég bara ég.
           </div>
         </div>
 
@@ -386,6 +424,16 @@
             Without you, I believe,<br>
             my life would be neither whole nor half.
           </div>
+          <div class="is" lang="is">
+            Menn segja að ég sé breytt<br>
+            og syngi um börnin og þig.<br>
+            Ég syng um það sem skiptir máli<br>
+            aðeins fyrir mig.<br>
+            Eitt mátt þú vita ég elska þig<br>
+            meir en lífið sjálft.<br>
+            Ég trúi án þín mitt líf væri<br>
+            hvorki heilt né hálft.
+          </div>
         </div>
 
         <div class="stanza">
@@ -396,6 +444,14 @@
             an adventure beneath every stone.<br>
             With you, winter is candlelight —<br>
             kisses, and now and then a rose.
+          </div>
+          <div class="is" lang="is">
+            Með þér er vorið yndislegt<br>
+            og sumarið dýrðin ein.<br>
+            Með þér er haustið gönguför<br>
+            og ævintýr undir stein.<br>
+            Með þér er veturinn kertaljós,<br>
+            koss og stöku rós.
           </div>
         </div>
 
@@ -410,6 +466,16 @@
             With you my life runs richer;<br>
             with you, I am simply me.
           </div>
+          <div class="is" lang="is">
+            Sérðu ekki við fæddumst til að<br>
+            standa hlið við hlið.<br>
+            Og halda út á veginn saman<br>
+            og líta aldrei við.<br>
+            Með þér vil ég verða gömul<br>
+            og ganga lífsins veg.<br>
+            Með þér er líf mitt ríkara,<br>
+            með þér er ég bara ég.
+          </div>
         </div>
 
         <div class="stanza">
@@ -421,12 +487,24 @@
             With you, winter is candlelight —<br>
             kisses, and now and then a rose.
           </div>
+          <div class="is" lang="is">
+            Með þér er vorið yndislegt<br>
+            og sumarið dýrðin ein.<br>
+            Með þér er haustið gönguför<br>
+            og ævintýr undir stein.<br>
+            Með þér er veturinn kertaljós,<br>
+            koss og stöku rós.
+          </div>
         </div>
 
         <div class="stanza">
           <div class="en">
             With you, winter is candlelight —<br>
             a kiss, and now and then <em>a rose</em>.
+          </div>
+          <div class="is" lang="is">
+            Með þér er veturinn kertaljós,<br>
+            koss og stöku rós.
           </div>
         </div>
 
@@ -518,16 +596,25 @@
 
   audio.addEventListener("timeupdate", () => {
     if (!audio.duration || isNaN(audio.duration)) return;
-    const progress = audio.currentTime / audio.duration;
+
+    // Wait through the instrumental intro before scrolling lyrics, and
+    // settle them at the final position before the outro fades out.
+    const INTRO_DELAY = 13;   // seconds — vocals enter around here
+    const OUTRO_DELAY = 11;   // seconds — song fades out at the end
+    const usable      = Math.max(1, audio.duration - INTRO_DELAY - OUTRO_DELAY);
+    const elapsed     = audio.currentTime - INTRO_DELAY;
+    const lyricsProgress = Math.max(0, Math.min(1, elapsed / usable));
 
     const totalScroll = lyrics.scrollHeight - lyricsView.clientHeight;
-    lyrics.style.transform = `translateY(${-(progress * totalScroll)}px)`;
+    lyrics.style.transform = `translateY(${-(lyricsProgress * totalScroll)}px)`;
 
-    progressFill.style.width = (progress * 100) + "%";
+    // Photos and the progress bar follow the song straight through.
+    const songProgress = audio.currentTime / audio.duration;
+    progressFill.style.width = (songProgress * 100) + "%";
 
     if (photoURLs.length > 1) {
       const segment = 1 / photoURLs.length;
-      const idx = Math.min(photoURLs.length - 1, Math.floor(progress / segment));
+      const idx = Math.min(photoURLs.length - 1, Math.floor(songProgress / segment));
       if (idx !== currentPhotoIdx) {
         crossfadeTo(photoURLs[idx]);
         currentPhotoIdx = idx;
