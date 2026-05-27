@@ -245,7 +245,7 @@
     flex-direction: column;
     gap: 1.4rem;
     opacity: 0;
-    transition: opacity 1.4s ease;
+    transition: opacity 0.9s ease;
     padding: 1rem 1.5rem;
   }
   .scene-lyrics.show { opacity: 1; }
@@ -621,44 +621,46 @@
   // SCENES — the heart of the experience
   // ====================================================================
   // Each scene = one photo + one block of lyric lines that belong together.
-  // Both fade in and out as a single unit, so nothing is ever stranded:
-  // lyrics never carry across photo changes, photos never lap the lyrics.
+  // Both fade in and out as one unit. tStart is set ~1.5s BEFORE the scene's
+  // first line is actually sung, so the fade-in completes before the voice.
   //
-  // Photo indices reference photos.json (17 photos available).
-  // Line indices reference BASE_LYRICS (38 lines).
+  // First-line timestamps (from Whisper forced alignment, minus 0.2s lead):
+  //   line  0 = 28.72   line  4 = 42.64   line  8 = 58.36   line 12 = 73.84
+  //   line 16 = 89.78   line 19 = 100.96  line 22 = 144.60  line 26 = 159.46
+  //   line 30 = 175.80  line 33 = 186.84  line 36 = 199.68
   // ====================================================================
   const SCENES = [
-    // Intro: sunset photo, song-info card, no lyrics. 0 → vocals begin.
-    { tStart:   0,  tEnd:  28.5, photo:  0, lines: [],                 intro: true },
+    // Intro: sunset photo, song-info card, no lyrics.
+    { tStart:   0,    tEnd:  27.2, photo:  0, lines: [],                 intro: true },
 
-    // Verse 1 — eight lines in two photo-paired quartets.
-    { tStart: 28.5, tEnd:  46,   photo:  1, lines: [0, 1, 2, 3] },
-    { tStart: 46,   tEnd:  58,   photo:  2, lines: [4, 5, 6, 7] },
+    // Verse 1 — two photo-paired quartets.
+    { tStart:  27.2, tEnd:  41.0, photo:  1, lines: [0, 1, 2, 3] },
+    { tStart:  41.0, tEnd:  56.5, photo:  2, lines: [4, 5, 6, 7] },
 
     // Verse 2 — confession.
-    { tStart: 58,   tEnd:  74,   photo:  3, lines: [8, 9, 10, 11] },
-    { tStart: 74,   tEnd:  89,   photo:  4, lines: [12, 13, 14, 15] },
+    { tStart:  56.5, tEnd:  72.0, photo:  3, lines: [8, 9, 10, 11] },
+    { tStart:  72.0, tEnd:  88.0, photo:  4, lines: [12, 13, 14, 15] },
 
-    // Chorus — the four seasons of being with you.
-    { tStart: 89,   tEnd: 101,   photo:  5, lines: [16, 17, 18] },
-    { tStart: 101,  tEnd: 128,   photo:  6, lines: [19, 20, 21] },
+    // Chorus — the four seasons.
+    { tStart:  88.0, tEnd:  99.2, photo:  5, lines: [16, 17, 18] },
+    { tStart:  99.2, tEnd: 127.0, photo:  6, lines: [19, 20, 21] },
 
-    // 32-second instrumental break — photo only, no lyrics, room to breathe.
-    { tStart: 128,  tEnd: 144,   photo:  7, lines: [] },
+    // 17-second instrumental — photo only, room to breathe.
+    { tStart: 127.0, tEnd: 143.0, photo:  7, lines: [] },
 
     // Verse 1 reprise.
-    { tStart: 144,  tEnd: 161,   photo:  8, lines: [22, 23, 24, 25] },
-    { tStart: 161,  tEnd: 176,   photo:  9, lines: [26, 27, 28, 29] },
+    { tStart: 143.0, tEnd: 157.8, photo:  8, lines: [22, 23, 24, 25] },
+    { tStart: 157.8, tEnd: 174.0, photo:  9, lines: [26, 27, 28, 29] },
 
     // Chorus reprise.
-    { tStart: 176,  tEnd: 188,   photo: 10, lines: [30, 31, 32] },
-    { tStart: 188,  tEnd: 200,   photo: 11, lines: [33, 34, 35] },
+    { tStart: 174.0, tEnd: 185.2, photo: 10, lines: [30, 31, 32] },
+    { tStart: 185.2, tEnd: 198.0, photo: 11, lines: [33, 34, 35] },
 
     // Tag — the kiss, the rose.
-    { tStart: 200,  tEnd: 218,   photo: 12, lines: [36, 37] },
+    { tStart: 198.0, tEnd: 218.0, photo: 12, lines: [36, 37] },
 
     // Outro / final image — the bench, the future. No lyrics.
-    { tStart: 218,  tEnd: 9999,  photo: 16, lines: [] },
+    { tStart: 218.0, tEnd: 9999,  photo: 16, lines: [] },
   ];
 
   let currentSceneIdx = -1;
@@ -695,7 +697,7 @@
     setTimeout(() => {
       renderSceneLyrics(scene);
       if (scene.lines.length) sceneLyrics.classList.add("show");
-    }, 600);
+    }, 400);
 
     // Crossfade photo + caption when the photo index changes
     if (!prevScene || prevScene.photo !== scene.photo) {
