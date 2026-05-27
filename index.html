@@ -214,44 +214,60 @@
     overflow: hidden;
   }
 
-  /* Soft dark scrim behind the lyrics so text is readable on any photo */
+  /* Soft dark scrim — secondary defense behind the frosted lyric card */
   .lyrics-scrim {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: min(1100px, 96vw);
-    height: 58vh;
-    height: 58dvh;
+    width: min(1300px, 100vw);
+    height: 50vh;
+    height: 50dvh;
     background: radial-gradient(
-      ellipse 65% 55% at center,
-      rgba(10, 13, 24, 0.78) 0%,
-      rgba(10, 13, 24, 0.50) 50%,
-      rgba(10, 13, 24, 0) 85%
+      ellipse 70% 60% at center,
+      rgba(8, 10, 18, 0.35) 0%,
+      rgba(8, 10, 18, 0.15) 50%,
+      rgba(8, 10, 18, 0) 85%
     );
     pointer-events: none;
-    z-index: 6;
+    z-index: 5;
   }
 
-  /* Lyrics for the current scene. Two of these layers stack on top of each
-     other so we can crossfade smoothly between scenes — new rises as old recedes,
-     no dead moment between them. */
+  /* Lyrics for the current scene. Each scene-lyrics layer is a frosted-glass
+     card so text is readable on any photo — bright sea, white furniture, sky.
+     Two of these layers stack so we can crossfade smoothly between scenes. */
   .scene-lyrics {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: min(1000px, 92vw);
+    width: auto;
+    max-width: min(900px, 90vw);
     z-index: 7;
     display: flex;
     flex-direction: column;
     gap: 1.4rem;
     opacity: 0;
     transition: opacity 1s ease;
-    padding: 1rem 1.5rem;
+    padding: 2.6rem 3.2rem;
     pointer-events: none;
+    background: rgba(8, 10, 18, 0.42);
+    backdrop-filter: blur(14px) saturate(0.85);
+    -webkit-backdrop-filter: blur(14px) saturate(0.85);
+    border-radius: 1.4rem;
+    border: 1px solid rgba(230, 193, 132, 0.10);
+    box-shadow:
+      0 30px 80px -20px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
   .scene-lyrics.show { opacity: 1; }
+  .scene-lyrics:empty {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
+  }
 
   .lyric-row {
     display: grid;
@@ -405,7 +421,7 @@
     font-size: clamp(1.1rem, 2.3vw, 1.55rem);
     line-height: 1.35;
     letter-spacing: 0.015em;
-    color: rgba(245, 230, 200, 0.72);
+    color: rgba(245, 230, 200, 0.88);
     text-shadow:
       0 0 2px rgba(0, 0, 0, 0.95),
       0 2px 14px rgba(0, 0, 0, 0.85);
@@ -557,8 +573,13 @@
 
   @media (max-width: 480px) {
     .ornament { letter-spacing: 0.5em; }
-    .scene-lyrics { gap: 1.3rem; padding: 0.6rem; }
-    .lyric-row { gap: 0.25rem; padding: 0 0.3rem; }
+    .scene-lyrics {
+      max-width: 94vw;
+      padding: 1.5rem 1.4rem;
+      gap: 1.1rem;
+      border-radius: 1.1rem;
+    }
+    .lyric-row { gap: 0.25rem; padding: 0; }
     .is { font-size: clamp(1.2rem, 5vw, 1.7rem); }
     .en { font-size: clamp(0.85rem, 3.4vw, 1.1rem); }
     .lyrics-scrim { height: 56vh; height: 56dvh; }
