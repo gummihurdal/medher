@@ -795,7 +795,7 @@
     if (!prevScene || prevScene.photo !== scene.photo) {
       const p = photoData[scene.photo];
       if (p) {
-        crossfadeTo(p.url);
+        crossfadeTo(p.url, p.position);
         setCaption(p.caption);
       }
     }
@@ -892,21 +892,27 @@
 
   // ===== END KARAOKE LYRICS =====
 
-  let photoData = [];        // [{ url, caption }]
+  let photoData = [];        // [{ url, caption, position }]
   let currentPhotoIdx = -1;
   let activeLayer = layerA;
   let idleLayer   = layerB;
 
   // Load photos manifest in the background. Supports both formats:
   //   ["a.jpg", "b.jpg", ...]
-  //   [{file: "a.jpg", caption: "..."}, ...]
+  //   [{file: "a.jpg", caption: "...", position: "75% center"}, ...]
+  // The optional `position` field is a CSS background-position value used
+  // to keep the subject visible when portrait phones crop landscape photos.
   fetch("photos.json", { cache: "no-cache" })
     .then((r) => (r.ok ? r.json() : []))
     .then((list) => {
       if (!Array.isArray(list)) return;
       photoData = list.map((entry) => {
-        if (typeof entry === "string") return { url: `photos/${entry}`, caption: "" };
-        return { url: `photos/${entry.file}`, caption: entry.caption || "" };
+        if (typeof entry === "string") return { url: `photos/${entry}`, caption: "", position: "center" };
+        return {
+          url: `photos/${entry.file}`,
+          caption: entry.caption || "",
+          position: entry.position || "center",
+        };
       });
       if (photoData.length) {
         const pre = new Image();
@@ -989,8 +995,9 @@
   });
 
   let kbVariant = 0;
-  function crossfadeTo(url) {
+  function crossfadeTo(url, position) {
     idleLayer.style.backgroundImage = `url('${url}')`;
+    idleLayer.style.backgroundPosition = position || "center";
     // Remove all kb classes and force reflow so the animation restarts.
     idleLayer.classList.remove("kb-1", "kb-2", "kb-3");
     void idleLayer.offsetWidth;
