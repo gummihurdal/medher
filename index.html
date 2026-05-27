@@ -711,11 +711,9 @@
     { tStart: 175.2, tEnd: 186.9, photo: 10, lines: [30, 31, 32] },     // L32 done ~186.0
     { tStart: 186.9, tEnd: 199.9, photo: 11, lines: [33, 34, 35] },     // L35 done ~199.0
 
-    // Tag — the kiss, the rose.
-    { tStart: 199.9, tEnd: 218.0, photo: 12, lines: [36, 37] },         // L37 done ~206.0
-
-    // Outro — final image, no lyrics.
-    { tStart: 218.0, tEnd: 9999,  photo: 16, lines: [] },
+    // Tag — the kiss, the rose. Photo holds through the song's fade-out
+    // to the closing card; no need for a separate outro photo.
+    { tStart: 199.9, tEnd: 9999, photo: 12, lines: [36, 37] },              // L37 done ~206.0
   ];
 
   let currentSceneIdx = -1;
