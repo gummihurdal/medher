@@ -283,9 +283,9 @@
     align-items: center;
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
-  .row.prev    { opacity: 0.42; transform: scale(0.96); }
-  .row.current { opacity: 1;    transform: scale(1); }
-  .row.next    { opacity: 0.55; transform: scale(0.96); }
+  .row.prev,
+  .row.current,
+  .row.next    { opacity: 0.92; transform: scale(1); }
   .row.empty   { opacity: 0; }
 
   .en, .is {
@@ -299,18 +299,15 @@
       0 0 40px rgba(0, 0, 0, 0.7);
   }
   .en {
-    font-size: clamp(1.15rem, 2.6vw, 1.7rem);
+    font-size: clamp(1.2rem, 2.8vw, 1.75rem);
     text-align: right;
   }
   .en em { color: var(--gold); }
   .is {
-    font-size: clamp(1rem, 2.3vw, 1.5rem);
+    font-size: clamp(1.05rem, 2.5vw, 1.55rem);
     text-align: left;
     color: rgba(245, 230, 200, 0.92);
   }
-  /* Slightly larger current line to make it the focal point */
-  .row.current .en { font-size: clamp(1.35rem, 3vw, 1.95rem); }
-  .row.current .is { font-size: clamp(1.18rem, 2.65vw, 1.7rem); }
 
   .controls {
     position: absolute;
@@ -448,10 +445,8 @@
     .ornament { letter-spacing: 0.5em; }
     .lines { gap: 0.9rem; }
     .row { gap: 1rem; }
-    .en { font-size: clamp(0.9rem, 3.6vw, 1.15rem); }
-    .is { font-size: clamp(0.85rem, 3.4vw, 1.05rem); }
-    .row.current .en { font-size: clamp(1.05rem, 4.4vw, 1.4rem); }
-    .row.current .is { font-size: clamp(0.95rem, 4vw, 1.25rem); }
+    .en { font-size: clamp(1rem, 4vw, 1.3rem); }
+    .is { font-size: clamp(0.9rem, 3.6vw, 1.15rem); }
     .lyrics-scrim { height: 50vh; height: 50dvh; }
     .caption { font-size: clamp(1.3rem, 5.5vw, 1.8rem); }
   }
