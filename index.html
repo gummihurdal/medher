@@ -269,7 +269,7 @@
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     pointer-events: auto;
     opacity: 0;
     transition: opacity 0.6s ease;
@@ -297,6 +297,39 @@
     border-color: var(--gold);
   }
   .ctrl-btn svg { width: 18px; height: 18px; }
+
+  .nudge {
+    width: 38px;
+    height: 38px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-style: italic;
+    color: var(--gold);
+    background: rgba(10, 13, 24, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(230, 193, 132, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .nudge:hover { background: rgba(230, 193, 132, 0.18); border-color: var(--gold); }
+
+  .time-readout {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--gold);
+    min-width: 80px;
+    text-align: center;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+  }
+  .time-readout .offset {
+    font-size: 0.75rem;
+    color: var(--amber-soft);
+    margin-left: 0.4rem;
+  }
 
   .progress-rail {
     width: clamp(160px, 30vw, 280px);
@@ -393,10 +426,13 @@
   </div>
 
   <div class="controls">
+    <button class="nudge" id="nudge-back" title="Lyrics earlier (−0.5s)" aria-label="Lyrics earlier">«</button>
     <button class="ctrl-btn" id="play-pause" aria-label="Pause">
       <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="0.5"/><rect x="14" y="5" width="4" height="14" rx="0.5"/></svg>
     </button>
+    <button class="nudge" id="nudge-forward" title="Lyrics later (+0.5s)" aria-label="Lyrics later">»</button>
     <div class="progress-rail"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="time-readout"><span id="time-now">0:00</span><span class="offset" id="time-offset"></span></div>
   </div>
 
   <div class="end-card" id="end-card">
@@ -423,9 +459,34 @@
   const layerA      = $("layer-a");
   const layerB      = $("layer-b");
   const playPause   = $("play-pause");
+  const nudgeBack   = $("nudge-back");
+  const nudgeFwd    = $("nudge-forward");
+  const timeNow     = $("time-now");
+  const timeOffset  = $("time-offset");
   const progressFill= $("progress-fill");
   const endCard     = $("end-card");
   const replayBtn   = $("replay-btn");
+
+  // Persistent timing offset (seconds) — user-adjustable with « » buttons.
+  // Positive value = lyrics appear LATER. Negative value = lyrics appear EARLIER.
+  let timingOffset = parseFloat(localStorage.getItem("medher.offset") || "0") || 0;
+  function renderOffset() {
+    timeOffset.textContent = timingOffset === 0 ? "" : (timingOffset > 0 ? `+${timingOffset.toFixed(1)}s` : `${timingOffset.toFixed(1)}s`);
+  }
+  renderOffset();
+
+  nudgeBack.addEventListener("click", () => {
+    timingOffset = Math.round((timingOffset - 0.5) * 10) / 10;
+    localStorage.setItem("medher.offset", String(timingOffset));
+    renderOffset();
+    currentLineIdx = -2; // force re-evaluate on next tick
+  });
+  nudgeFwd.addEventListener("click", () => {
+    timingOffset = Math.round((timingOffset + 0.5) * 10) / 10;
+    localStorage.setItem("medher.offset", String(timingOffset));
+    renderOffset();
+    currentLineIdx = -2;
+  });
 
   // ===== KARAOKE LYRICS =====
   // Each entry: t = second the line starts being sung.
@@ -560,13 +621,21 @@
     if (!audio.duration || isNaN(audio.duration)) return;
     const t = audio.currentTime;
 
+    // Live time display so the user can pinpoint when vocals begin.
+    const mm = Math.floor(t / 60);
+    const ss = Math.floor(t % 60).toString().padStart(2, "0");
+    timeNow.textContent = `${mm}:${ss}`;
+
+    // Effective time for lyric lookup, including user offset.
+    // If timingOffset > 0, lyrics appear later (we pretend less time has elapsed).
+    const tForLyrics = t - timingOffset;
+
     // Find the index of the line that should currently be shown.
     let idx = -1;
     for (let i = LYRICS.length - 1; i >= 0; i--) {
-      if (LYRICS[i].t <= t) { idx = i; break; }
+      if (LYRICS[i].t <= tForLyrics) { idx = i; break; }
     }
-    // Hide line after the song's outro begins to give the bench painting room to breathe.
-    if (t > 218) idx = LYRICS.length - 1;
+    if (t > audio.duration - 8) idx = LYRICS.length - 1;
     showLine(idx);
 
     // Photos and progress bar follow the song straight through.
