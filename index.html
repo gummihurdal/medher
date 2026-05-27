@@ -248,6 +248,25 @@
   }
   .caption.show { opacity: 0.88; }
 
+  /* Tiny section indicator (Verse 1, Chorus, etc.) — top-right corner */
+  .section-tag {
+    position: absolute;
+    top: max(1.5rem, env(safe-area-inset-top, 1.5rem));
+    right: 1.5rem;
+    z-index: 8;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber-soft);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+  }
+  .section-tag.show { opacity: 0.7; }
+
   /* Three lyric rows visible at once: previous, current, next */
   .lines {
     width: min(1000px, 92vw);
@@ -454,6 +473,7 @@
   <div class="vignette"></div>
 
   <div class="caption" id="caption"></div>
+  <div class="section-tag" id="section-tag"></div>
 
   <div class="lyrics-frame">
     <div class="lyrics-scrim"></div>
@@ -494,6 +514,7 @@
   const audio       = $("audio");
   const linesEl     = $("lines");
   const caption     = $("caption");
+  const sectionTag  = $("section-tag");
   const layerA      = $("layer-a");
   const layerB      = $("layer-b");
   const playPause   = $("play-pause");
@@ -561,49 +582,49 @@
 
   const BASE_LYRICS = [
     // Verse 1
-    { t: _(28.92), en: "Can't you see — we were born",                       is: "Sérðu ekki við fæddumst til að" },
-    { t: _(32.58), en: "to stand side by side,",                             is: "standa hlið við hlið." },
-    { t: _(35.68), en: "to set out on the road together",                    is: "Og halda út á veginn saman" },
-    { t: _(39.58), en: "and never look back.",                               is: "og líta aldrei við." },
-    { t: _(42.84), en: "With you I want to grow old",                        is: "Með þér vil ég verða gömul" },
-    { t: _(46.46), en: "and walk the road of life.",                         is: "og ganga lífsins veg." },
-    { t: _(51.02), en: "With you my life runs richer;",                      is: "Með þér er líf mitt ríkara," },
-    { t: _(54.58), en: "with you, I am simply me.",                          is: "með þér er ég bara ég." },
+    { t: _(28.92), s: "Verse 1", en: "Can't you see — we were born",                       is: "Sérðu ekki við fæddumst til að" },
+    { t: _(32.58), s: "Verse 1", en: "to stand side by side,",                             is: "standa hlið við hlið." },
+    { t: _(35.68), s: "Verse 1", en: "to set out on the road together",                    is: "Og halda út á veginn saman" },
+    { t: _(39.58), s: "Verse 1", en: "and never look back.",                               is: "og líta aldrei við." },
+    { t: _(42.84), s: "Verse 1", en: "With you I want to grow old",                        is: "Með þér vil ég verða gömul" },
+    { t: _(46.46), s: "Verse 1", en: "and walk the road of life.",                         is: "og ganga lífsins veg." },
+    { t: _(51.02), s: "Verse 1", en: "With you my life runs richer;",                      is: "Með þér er líf mitt ríkara," },
+    { t: _(54.58), s: "Verse 1", en: "with you, I am simply me.",                          is: "með þér er ég bara ég." },
     // Verse 2
-    { t: _(58.56), en: "They say I have changed,",                           is: "Menn segja að ég sé breytt" },
-    { t: _(63.04), en: "that I sing only of the children, and of you.",      is: "og syngi um börnin og þig." },
-    { t: _(67.20), en: "I sing of what matters —",                           is: "Ég syng um það sem skiptir máli" },
-    { t: _(70.72), en: "what matters to me alone.",                          is: "aðeins fyrir mig." },
-    { t: _(74.04), en: "One thing you should know: I love you",              is: "Eitt mátt þú vita ég elska þig" },
-    { t: _(78.38), en: "more than life itself.",                             is: "meir en lífið sjálft." },
-    { t: _(81.30), en: "Without you, I believe,",                            is: "Ég trúi án þín mitt líf væri" },
-    { t: _(84.78), en: "my life would be neither whole nor half.",           is: "hvorki heilt né hálft." },
+    { t: _(58.56), s: "Verse 2", en: "They say I have changed,",                           is: "Menn segja að ég sé breytt" },
+    { t: _(63.04), s: "Verse 2", en: "that I sing only of the children, and of you.",      is: "og syngi um börnin og þig." },
+    { t: _(67.20), s: "Verse 2", en: "I sing of what matters —",                           is: "Ég syng um það sem skiptir máli" },
+    { t: _(70.72), s: "Verse 2", en: "what matters to me alone.",                          is: "aðeins fyrir mig." },
+    { t: _(74.04), s: "Verse 2", en: "One thing you should know: I love you",              is: "Eitt mátt þú vita ég elska þig" },
+    { t: _(78.38), s: "Verse 2", en: "more than life itself.",                             is: "meir en lífið sjálft." },
+    { t: _(81.30), s: "Verse 2", en: "Without you, I believe,",                            is: "Ég trúi án þín mitt líf væri" },
+    { t: _(84.78), s: "Verse 2", en: "my life would be neither whole nor half.",           is: "hvorki heilt né hálft." },
     // Chorus
-    { t: _(89.98), en: "With you, spring is lovely",                         is: "Með þér er vorið yndislegt" },
-    { t: _(94.00), en: "and summer is glory itself.",                        is: "og sumarið dýrðin ein." },
-    { t: _(98.26), en: "With you, autumn is a wandering,",                   is: "Með þér er haustið gönguför" },
-    { t: _(101.16),en: "an adventure beneath every stone.",                  is: "og ævintýr undir stein." },
-    { t: _(105.18),en: "With you, winter is candlelight —",                  is: "Með þér er veturinn kertaljós," },
-    { t: _(109.10),en: "kisses, and now and then a rose.",                   is: "koss og stöku rós." },
+    { t: _(89.98), s: "Chorus", en: "With you, spring is lovely",                          is: "Með þér er vorið yndislegt" },
+    { t: _(94.00), s: "Chorus", en: "and summer is glory itself.",                         is: "og sumarið dýrðin ein." },
+    { t: _(98.26), s: "Chorus", en: "With you, autumn is a wandering,",                    is: "Með þér er haustið gönguför" },
+    { t: _(101.16),s: "Chorus", en: "an adventure beneath every stone.",                   is: "og ævintýr undir stein." },
+    { t: _(105.18),s: "Chorus", en: "With you, winter is candlelight —",                   is: "Með þér er veturinn kertaljós," },
+    { t: _(109.10),s: "Chorus", en: "kisses, and now and then a rose.",                    is: "koss og stöku rós." },
     // Verse 1 reprise (after ~33s instrumental break)
-    { t: _(144.80),en: "Can't you see — we were born",                       is: "Sérðu ekki við fæddumst til að" },
-    { t: _(149.36),en: "to stand side by side,",                             is: "standa hlið við hlið." },
-    { t: _(152.44),en: "to set out on the road together",                    is: "Og halda út á veginn saman" },
-    { t: _(156.24),en: "and never look back.",                               is: "og líta aldrei við." },
-    { t: _(159.66),en: "With you I want to grow old",                        is: "Með þér vil ég verða gömul" },
-    { t: _(163.90),en: "and walk the road of life.",                         is: "og ganga lífsins veg." },
-    { t: _(167.72),en: "With you my life runs richer;",                      is: "Með þér er líf mitt ríkara," },
-    { t: _(171.28),en: "with you, I am simply me.",                          is: "með þér er ég bara ég." },
+    { t: _(144.80),s: "Verse 1 reprise", en: "Can't you see — we were born",               is: "Sérðu ekki við fæddumst til að" },
+    { t: _(149.36),s: "Verse 1 reprise", en: "to stand side by side,",                     is: "standa hlið við hlið." },
+    { t: _(152.44),s: "Verse 1 reprise", en: "to set out on the road together",            is: "Og halda út á veginn saman" },
+    { t: _(156.24),s: "Verse 1 reprise", en: "and never look back.",                       is: "og líta aldrei við." },
+    { t: _(159.66),s: "Verse 1 reprise", en: "With you I want to grow old",                is: "Með þér vil ég verða gömul" },
+    { t: _(163.90),s: "Verse 1 reprise", en: "and walk the road of life.",                 is: "og ganga lífsins veg." },
+    { t: _(167.72),s: "Verse 1 reprise", en: "With you my life runs richer;",              is: "Með þér er líf mitt ríkara," },
+    { t: _(171.28),s: "Verse 1 reprise", en: "with you, I am simply me.",                  is: "með þér er ég bara ég." },
     // Chorus reprise
-    { t: _(176.00),en: "With you, spring is lovely",                         is: "Með þér er vorið yndislegt" },
-    { t: _(179.78),en: "and summer is glory itself.",                        is: "og sumarið dýrðin ein." },
-    { t: _(183.84),en: "With you, autumn is a wandering,",                   is: "Með þér er haustið gönguför" },
-    { t: _(187.04),en: "an adventure beneath every stone.",                  is: "og ævintýr undir stein." },
-    { t: _(192.66),en: "With you, winter is candlelight —",                  is: "Með þér er veturinn kertaljós," },
-    { t: _(196.72),en: "kisses, and now and then a rose.",                   is: "koss og stöku rós." },
+    { t: _(176.00),s: "Chorus reprise", en: "With you, spring is lovely",                  is: "Með þér er vorið yndislegt" },
+    { t: _(179.78),s: "Chorus reprise", en: "and summer is glory itself.",                 is: "og sumarið dýrðin ein." },
+    { t: _(183.84),s: "Chorus reprise", en: "With you, autumn is a wandering,",            is: "Með þér er haustið gönguför" },
+    { t: _(187.04),s: "Chorus reprise", en: "an adventure beneath every stone.",           is: "og ævintýr undir stein." },
+    { t: _(192.66),s: "Chorus reprise", en: "With you, winter is candlelight —",           is: "Með þér er veturinn kertaljós," },
+    { t: _(196.72),s: "Chorus reprise", en: "kisses, and now and then a rose.",            is: "koss og stöku rós." },
     // Tag
-    { t: _(199.88),en: "With you, winter is candlelight —",                  is: "Með þér er veturinn kertaljós," },
-    { t: _(204.20),en: "a kiss, and now and then <em>a rose</em>.",          is: "koss og stöku rós." },
+    { t: _(199.88),s: "Tag", en: "With you, winter is candlelight —",                      is: "Með þér er veturinn kertaljós," },
+    { t: _(204.20),s: "Tag", en: "a kiss, and now and then <em>a rose</em>.",              is: "koss og stöku rós." },
   ];
 
   // If the user has run calibration, use those times. Otherwise use the base.
@@ -621,10 +642,18 @@
       setSlot("prev",    null);
       setSlot("current", null);
       setSlot("next",    BASE_LYRICS[0] || null);
+      sectionTag.classList.remove("show");
     } else {
       setSlot("prev",    BASE_LYRICS[idx - 1] || null);
       setSlot("current", BASE_LYRICS[idx] || null);
       setSlot("next",    BASE_LYRICS[idx + 1] || null);
+      const sec = BASE_LYRICS[idx] && BASE_LYRICS[idx].s;
+      if (sec) {
+        sectionTag.textContent = sec;
+        sectionTag.classList.add("show");
+      } else {
+        sectionTag.classList.remove("show");
+      }
     }
   }
 
