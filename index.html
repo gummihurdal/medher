@@ -806,7 +806,7 @@
 
   // Persistent timing offset (seconds) — user-adjustable with « » buttons.
   // Positive value = lyrics appear LATER. Negative value = lyrics appear EARLIER.
-  let timingOffset = parseFloat(localStorage.getItem("medher.offset.v3") || "0") || 0;
+  let timingOffset = parseFloat(localStorage.getItem("medher.offset.v4") || "0") || 0;
   function renderOffset() {
     timeOffset.textContent = timingOffset === 0 ? "" : (timingOffset > 0 ? `+${timingOffset.toFixed(1)}s` : `${timingOffset.toFixed(1)}s`);
   }
@@ -814,13 +814,13 @@
 
   nudgeBack.addEventListener("click", () => {
     timingOffset = Math.round((timingOffset - 0.5) * 10) / 10;
-    localStorage.setItem("medher.offset.v3", String(timingOffset));
+    localStorage.setItem("medher.offset.v4", String(timingOffset));
     renderOffset();
     currentSceneIdx = -1;
   });
   nudgeFwd.addEventListener("click", () => {
     timingOffset = Math.round((timingOffset + 0.5) * 10) / 10;
-    localStorage.setItem("medher.offset.v3", String(timingOffset));
+    localStorage.setItem("medher.offset.v4", String(timingOffset));
     renderOffset();
     currentSceneIdx = -1;
   });
